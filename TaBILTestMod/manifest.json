@@ -1,0 +1,7 @@
+﻿{
+	"Name": "TaBIL Test Mod",
+	"InternalName": "TaBIL_Test_Mod",
+	"Version": "1.0",
+	"Authour": "Zoryn",
+	"Assembly": "TaBILTestMod.dll"
+}
