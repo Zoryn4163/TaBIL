@@ -65,4 +65,7 @@
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PreBuildEvent>del /f /q "$(TargetDir)*"</PreBuildEvent>
+  </PropertyGroup>
 </Project>

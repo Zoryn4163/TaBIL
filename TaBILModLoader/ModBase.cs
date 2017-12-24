@@ -13,5 +13,7 @@ namespace TaBILModLoader
         public virtual void Init() { }
 
         public virtual void OnGameLoaded() { }
+
+        public virtual void OnUpdate() { }
     }
 }

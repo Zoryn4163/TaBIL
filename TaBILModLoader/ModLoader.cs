@@ -22,6 +22,7 @@ namespace TaBILModLoader
         public static readonly string ModDir = Path.Combine(ExeDir, "mods");
         public static int ModsLoaded { get; private set; }
         public static ModBase[] Mods { get; private set; }
+        public static List<ModBase> ModsToRemove { get; private set; }
 
         public static DXGame DxGame { get; private set; }
 
@@ -94,6 +95,41 @@ namespace TaBILModLoader
                 catch (Exception ex)
                 {
                     Log.Out($"[{mod.Manifest.InternalName}] encountered an error in its OnGameLoaded function.");
+                }
+            }
+        }
+
+        public static void OnUpdate()
+        {
+            if (Mods == null)
+                Mods = new ModBase[0];
+
+            if (ModsToRemove == null)
+                ModsToRemove = new List<ModBase>();
+
+            if (ModsToRemove.Any())
+            {
+                List<ModBase> mods = Mods.ToList();
+                foreach (var mod in ModsToRemove)
+                {
+                    if (mods.Remove(mod))
+                    {
+                        Log.Out($"Removed [{mod.Manifest.InternalName}] from the update pool.");
+                    }
+                }
+                Mods = mods.ToArray();
+            }
+
+            foreach (var mod in Mods)
+            {
+                try
+                {
+                    mod.OnUpdate();
+                }
+                catch (Exception ex)
+                {
+                    Log.Out($"[{mod.Manifest.InternalName}] encountered an error in its Update function.");
+                    ModsToRemove.Add(mod);
                 }
             }
         }

@@ -15,6 +15,7 @@ namespace TaBILModWrapper
         {
             IlApi();
             IlOnGameLoaded();
+            IlOnUpdate();
         }
 
         private void IlApi()
@@ -36,6 +37,20 @@ namespace TaBILModWrapper
 
             var tgt = TargAssembly.MainModule.GetType("ZX.ZXGame");
             var tgm = tgt.Methods.Single(x => x.Name == "OnLoad");
+
+            var il = tgm.Body.GetILProcessor();
+            var fi = il.Body.Instructions.First();
+            il.InsertBefore(fi, il.Create(OpCodes.Call, impMethod));
+        }
+
+        private void IlOnUpdate()
+        {
+            var initClassType = InjAssembly.MainModule.GetType("TaBILModWrapper.InjectMethods");
+            var initMethod = initClassType.Methods.Single(x => x.Name == "OnUpdate");
+            var impMethod = TargAssembly.MainModule.ImportReference(initMethod);
+
+            var tgt = TargAssembly.MainModule.GetType("ZX.ZXGame");
+            var tgm = tgt.Methods.Single(x => x.Name == "OnStartFrame");
 
             var il = tgm.Body.GetILProcessor();
             var fi = il.Body.Instructions.First();
@@ -67,6 +82,11 @@ namespace TaBILModWrapper
         public static void OnGameLoaded()
         {
             TaBILModLoader.ModLoader.OnGameLoaded();
+        }
+
+        public static void OnUpdate()
+        {
+            TaBILModLoader.ModLoader.OnUpdate();
         }
     }
 }
