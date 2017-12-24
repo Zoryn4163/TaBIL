@@ -13,9 +13,18 @@ namespace TaBILModWrapper
         
         public void ProcessIlHooks()
         {
+            PublicizeTypes();
             IlApi();
             IlOnGameLoaded();
             IlOnUpdate();
+        }
+
+        private void PublicizeTypes()
+        {
+            foreach (var t in TargAssembly.MainModule.Types)
+            {
+                t.IsPublic = true;
+            }
         }
 
         private void IlApi()
