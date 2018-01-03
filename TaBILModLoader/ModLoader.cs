@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using DXVision;
 using Newtonsoft.Json;
+using ZX;
 
 namespace TaBILModLoader
 {
@@ -39,6 +40,18 @@ namespace TaBILModLoader
 
             Log.Out("TaBILModLoader Initialized");
             Log.Out("Executing in: " + ExeDir);
+
+            Log.Out("Setting IsSteam to FALSE");
+            ZXGame.IsSteam = false;
+
+            //ZXGame.Current.Entities
+
+            AppDomain.CurrentDomain.FirstChanceException += CurrentDomain_FirstChanceException;
+            AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+            AppDomain.CurrentDomain.ProcessExit += CurrentDomain_ProcessExit;
+
+            //throw new Exception();
+
             Log.Out("Checking for mods in: " + ModDir);
 
             var modIdx = IndexMods();
@@ -58,6 +71,26 @@ namespace TaBILModLoader
                     Log.Out($"[{mod.Manifest.InternalName}] encountered an error in its OnGameLoaded function.");
                 }
             }
+        }
+
+        private static void CurrentDomain_FirstChanceException(object sender, System.Runtime.ExceptionServices.FirstChanceExceptionEventArgs e)
+        {
+            Log.Out("A first chance exception has occured. Details are listed below.");
+            Log.Out($"Sender of type [{sender.GetType()}]: {sender.ToString()}");
+            Log.Out($"ExceptionObject of type [{e.Exception.GetType()}]: {e.Exception}");
+        }
+
+        private static void CurrentDomain_ProcessExit(object sender, EventArgs e)
+        {
+            Log.Out("Process is exiting.");
+        }
+
+        private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+        {
+            Log.Out("An unhandled exception has occured. Details are listed below.");
+            Log.Out($"Sender of type [{sender.GetType()}]: {sender.ToString()}");
+            Log.Out($"ExceptionObject of type [{e.ExceptionObject.GetType()}]: {e.ExceptionObject}");
+            Log.Out($"Error is terminating: {e.IsTerminating}");
         }
 
         public static void OnGameLoaded()
@@ -99,7 +132,22 @@ namespace TaBILModLoader
             }
         }
 
-        public static void OnUpdate()
+        public static void OnScreenUpdate()
+        {
+            DoUpdate("screen");
+        }
+
+        public static void OnGameUpdate()
+        {
+            DoUpdate("game");
+        }
+
+        public static void OnLevelUpdate()
+        {
+            DoUpdate("level");
+        }
+
+        private static void DoUpdate(string m)
         {
             if (Mods == null)
                 Mods = new ModBase[0];
@@ -124,7 +172,18 @@ namespace TaBILModLoader
             {
                 try
                 {
-                    mod.OnUpdate();
+                    switch (m)
+                    {
+                        case "screen":
+                            mod.OnScreenUpdate();
+                            break;
+                        case "game":
+                            mod.OnGameUpdate();
+                            break;
+                        case "level":
+                            mod.OnLevelUpdate();
+                            break;
+                    }
                 }
                 catch (Exception ex)
                 {

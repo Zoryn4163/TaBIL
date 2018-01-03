@@ -13,17 +13,21 @@ namespace TaBILModWrapper
         
         public void ProcessIlHooks()
         {
+            Console.WriteLine("Performing IL Hooks!");
             PublicizeTypes();
             IlApi();
             IlOnGameLoaded();
-            IlOnUpdate();
+            //IlOnScreenUpdate();
+            //IlOnGameUpdate();
+            IlOnLevelUpdate();
         }
 
         private void PublicizeTypes()
         {
             foreach (var t in TargAssembly.MainModule.Types)
             {
-                t.IsPublic = true;
+                if (!t.IsPublic)
+                    t.IsPublic = true;
             }
         }
 
@@ -52,14 +56,42 @@ namespace TaBILModWrapper
             il.InsertBefore(fi, il.Create(OpCodes.Call, impMethod));
         }
 
-        private void IlOnUpdate()
+        private void IlOnScreenUpdate()
         {
             var initClassType = InjAssembly.MainModule.GetType("TaBILModWrapper.InjectMethods");
-            var initMethod = initClassType.Methods.Single(x => x.Name == "OnUpdate");
+            var initMethod = initClassType.Methods.Single(x => x.Name == "OnScreenUpdate");
             var impMethod = TargAssembly.MainModule.ImportReference(initMethod);
 
             var tgt = TargAssembly.MainModule.GetType("ZX.ZXGame");
             var tgm = tgt.Methods.Single(x => x.Name == "OnStartFrame");
+
+            var il = tgm.Body.GetILProcessor();
+            var fi = il.Body.Instructions.First();
+            il.InsertBefore(fi, il.Create(OpCodes.Call, impMethod));
+        }
+
+        private void IlOnGameUpdate()
+        {
+            var initClassType = InjAssembly.MainModule.GetType("TaBILModWrapper.InjectMethods");
+            var initMethod = initClassType.Methods.Single(x => x.Name == "OnGameUpdate");
+            var impMethod = TargAssembly.MainModule.ImportReference(initMethod);
+
+            var tgt = TargAssembly.MainModule.GetType("ZX.ZXSystem_GameLevel");
+            var tgm = tgt.Methods.Single(x => x.Name == "OnStartUpdate");
+
+            var il = tgm.Body.GetILProcessor();
+            var fi = il.Body.Instructions.First();
+            il.InsertBefore(fi, il.Create(OpCodes.Call, impMethod));
+        }
+
+        private void IlOnLevelUpdate()
+        {
+            var initClassType = InjAssembly.MainModule.GetType("TaBILModWrapper.InjectMethods");
+            var initMethod = initClassType.Methods.Single(x => x.Name == "OnLevelUpdate");
+            var impMethod = TargAssembly.MainModule.ImportReference(initMethod);
+
+            var tgt = TargAssembly.MainModule.GetType("ZX.ZXLevelState");
+            var tgm = tgt.Methods.Single(x => x.Name == "OnUpdate");
 
             var il = tgm.Body.GetILProcessor();
             var fi = il.Body.Instructions.First();
@@ -93,9 +125,19 @@ namespace TaBILModWrapper
             TaBILModLoader.ModLoader.OnGameLoaded();
         }
 
-        public static void OnUpdate()
+        public static void OnScreenUpdate()
         {
-            TaBILModLoader.ModLoader.OnUpdate();
+            TaBILModLoader.ModLoader.OnScreenUpdate();
+        }
+
+        public static void OnGameUpdate()
+        {
+            TaBILModLoader.ModLoader.OnGameUpdate();
+        }
+
+        public static void OnLevelUpdate()
+        {
+            TaBILModLoader.ModLoader.OnLevelUpdate();
         }
     }
 }
